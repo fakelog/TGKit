@@ -1,0 +1,48 @@
+[workspace]
+members = [
+    "crates/new-message-event-handler",
+    "crates/tg-kit-core",
+]
+
+[workspace.dependencies]
+anyhow = "1.0.97"
+async-trait = "0.1.88"
+futures = "0.3.31"
+grammers-client.git = "https://github.com/Lonami/grammers.git"
+grammers-session.git = "https://github.com/Lonami/grammers.git"
+grammers-tl-types.git = "https://github.com/Lonami/grammers.git"
+linkme = "0.3.32"
+log = "0.4.27"
+tokio = { version = "1", features = [ "full" ] }
+
+tg-kit-core.path = "crates/tg-kit-core"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[package]
+name = "tg-kit"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+tg-kit-core.workspace = true
+grammers-client.workspace = true
+grammers-session.workspace = true
+grammers-tl-types.workspace = true
+log.workspace = true
+tokio.workspace = true
+
+# Telegram Events
+new-message-event-handler = { path = "crates/new-message-event-handler", optional = true }
+
+[dev-dependencies]
+dotenvy = "0.15"
+linkme.workspace = true
+
+[features]
+default = [ "new-message-event-handler" ]
+new-message-event-handler = ["dep:new-message-event-handler"]

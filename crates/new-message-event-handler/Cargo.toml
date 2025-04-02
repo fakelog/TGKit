@@ -1,0 +1,12 @@
+[package]
+name = "new-message-event-handler"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+grammers-client.workspace = true
+linkme.workspace = true
+tg-kit-core.workspace = true
+tokio.workspace = true
