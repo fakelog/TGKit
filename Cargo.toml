@@ -5,14 +5,14 @@ members = [
 ]
 
 [workspace.dependencies]
-anyhow = "1.0.97"
-async-trait = "0.1.88"
-futures = "0.3.31"
+anyhow = "1.0"
+async-trait = "0.1"
+futures = "0.3"
 grammers-client.git = "https://github.com/Lonami/grammers.git"
 grammers-session.git = "https://github.com/Lonami/grammers.git"
 grammers-tl-types.git = "https://github.com/Lonami/grammers.git"
-linkme = "0.3.32"
-log = "0.4.27"
+linkme = "0.3"
+log = "0.4"
 tokio = { version = "1", features = [ "full" ] }
 
 tg-kit-core.path = "crates/tg-kit-core"
