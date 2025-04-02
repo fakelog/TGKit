@@ -10,8 +10,6 @@ use new_message_event_handler::{
 use std::{any::Any, env};
 use tg_kit::{Client, EventDispatcher};
 
-extern crate new_message_event_handler;
-
 const SESSION_FILE: &str = "example.session";
 
 async fn get_dispatcher() -> EventDispatcher {
