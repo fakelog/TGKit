@@ -7,4 +7,4 @@ pub use event_dispatcher::EventDispatcher;
 pub use tg_kit_core;
 
 #[cfg(feature = "new-message-event-handler")]
-extern crate new_message_event_handler;
+pub extern crate new_message_event_handler;

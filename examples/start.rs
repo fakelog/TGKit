@@ -3,12 +3,15 @@ use async_trait::async_trait;
 use dotenvy::dotenv;
 use grammers_client::{Client as GClient, types::Message};
 use linkme::distributed_slice;
-use new_message_event_handler::{
-    MESSAGES_HANDLERS, NewMessageHandler,
-    types::{MessageHandler, Rule},
-};
+
 use std::{any::Any, env};
-use tg_kit::{Client, EventDispatcher};
+use tg_kit::{
+    Client, EventDispatcher,
+    new_message_event_handler::{
+        MESSAGES_HANDLERS, NewMessageHandler,
+        types::{MessageHandler, Rule},
+    },
+};
 
 const SESSION_FILE: &str = "example.session";
 
