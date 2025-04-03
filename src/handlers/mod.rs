@@ -1,3 +1,4 @@
+pub mod callback_query_handler;
 pub mod new_message_handler;
 
 use crate::middleware::MiddlewareContainer;
