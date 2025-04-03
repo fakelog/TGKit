@@ -12,8 +12,8 @@ use super::EventHandler;
 use crate::{middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
 
 pub struct NewMessageHandler {
-    middlewares: MiddlewareContainer,
     handlers: Vec<Box<dyn MessageHandler>>,
+    middlewares: MiddlewareContainer,
 }
 
 impl NewMessageHandler {
