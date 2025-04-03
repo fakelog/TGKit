@@ -2,28 +2,31 @@ use anyhow::Result;
 use async_trait::async_trait;
 use dotenvy::dotenv;
 use grammers_client::{Client as GClient, types::Message};
-use linkme::distributed_slice;
 
-use std::{any::Any, env};
+use std::env;
 use tg_kit::{
-    Client, EventDispatcher,
-    new_message_event_handler::{
-        MESSAGES_HANDLERS, NewMessageHandler,
-        types::{MessageHandler, Rule},
-    },
+    Client,
+    dispatcher::EventDispatcher,
+    handlers::new_message_handler::{MessageHandler, NewMessageHandler},
+    rules::{MessageRule, TextRule},
+    types::Payload,
 };
 
 const SESSION_FILE: &str = "example.session";
 
-async fn get_dispatcher() -> EventDispatcher {
-    let mut event_dispatcher = EventDispatcher::new();
-    event_dispatcher.register_handler(Box::new(NewMessageHandler));
+async fn get_dispatcher() -> Result<EventDispatcher> {
+    let message_handler = NewMessageHandler::builder()
+        .with_handler(StartHandler {})
+        .build();
 
-    event_dispatcher
+    EventDispatcher::builder()
+        .with_handler(Box::new(message_handler))
+        .build()
+        .await
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     dotenv().ok();
 
     let api_hash = env::var("API_HASH").expect("API_HASH not set");
@@ -32,7 +35,7 @@ async fn main() {
         .parse()
         .expect("API_ID invalid");
     let token = env::var("TOKEN").expect("TOKEN not set");
-    let dispatcher = get_dispatcher().await;
+    let dispatcher = get_dispatcher().await?;
 
     let client = Client::new(
         api_hash,
@@ -44,7 +47,7 @@ async fn main() {
     .await
     .unwrap();
 
-    let _ = client.run().await;
+    client.run().await
 }
 
 // Create a new message handler
@@ -53,40 +56,13 @@ pub struct StartHandler;
 
 #[async_trait]
 impl MessageHandler for StartHandler {
-    async fn rules(&self) -> Vec<Box<dyn Rule>> {
+    async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
         vec![Box::new(TextRule::new("/start".to_string()))]
     }
 
-    async fn handle(
-        &self,
-        client: &GClient,
-        message: &Message,
-        _payload: Vec<Box<dyn Any + Send>>,
-    ) -> Result<()> {
+    async fn handle(&self, client: &GClient, message: &Message, _payload: Payload) -> Result<()> {
         client.send_message(message.chat(), "Тест").await?;
 
         Ok(())
-    }
-}
-
-// Register the handler
-#[distributed_slice(MESSAGES_HANDLERS)]
-static START_MESSAGE_HANDLER: &dyn MessageHandler = &StartHandler;
-
-// Create a rule to match the message
-pub struct TextRule {
-    pattern: String,
-}
-
-impl TextRule {
-    pub fn new(pattern: String) -> Self {
-        TextRule { pattern }
-    }
-}
-
-#[async_trait]
-impl Rule for TextRule {
-    async fn matches(&self, text: &str) -> Box<dyn Any + Send> {
-        Box::new(text == self.pattern) as Box<dyn Any + Send>
     }
 }

@@ -11,6 +11,7 @@ pub trait Middleware: Send + Sync {
     async fn after(&self, client: &Client, update: &Update) -> Result<()>;
 }
 
+#[derive(Clone)]
 pub struct MiddlewareContainer {
     middlewares: Arc<RwLock<Vec<Box<dyn Middleware>>>>,
 }

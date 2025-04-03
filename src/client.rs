@@ -5,7 +5,7 @@ use log::{error, info};
 use tokio::select;
 
 use crate::{
-    event_dispatcher::EventDispatcher,
+    dispatcher::EventDispatcher,
     utils::{BotReconnectionPolicy, save_session},
 };
 
