@@ -1,10 +1,11 @@
 mod builder;
 mod callback_handler;
 
+pub use callback_handler::CallbackHandler;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use builder::CallbackQueryHandlerBuilder;
-use callback_handler::CallbackHandler;
 use grammers_client::{Client, Update, types::CallbackQuery};
 
 use super::EventHandler;

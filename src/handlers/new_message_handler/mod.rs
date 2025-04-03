@@ -3,13 +3,13 @@ mod message_handler;
 
 pub use message_handler::MessageHandler;
 
-use crate::{middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
 use anyhow::{Ok, Result};
 use async_trait::async_trait;
 use builder::NewMessageHandlerBuilder;
 use grammers_client::{Client, Update};
 
 use super::EventHandler;
+use crate::{middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
 
 pub struct NewMessageHandler {
     middlewares: MiddlewareContainer,
@@ -34,6 +34,7 @@ impl EventHandler for NewMessageHandler {
             for handler in &self.handlers {
                 let rules: Vec<Box<dyn MessageRule>> = handler.rules().await;
                 let payload = check_rules(&rules, message.text()).await;
+
                 if !payload.is_empty() {
                     handler.handle(client, message, payload).await?;
                 }
