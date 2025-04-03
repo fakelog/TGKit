@@ -6,7 +6,7 @@ use crate::types::PayloadItem;
 use async_trait::async_trait;
 
 pub use command::CommandRule;
-pub use regex::{RegexResult, RegexRule};
+pub use regex::*;
 pub use text::TextRule;
 
 #[async_trait]
