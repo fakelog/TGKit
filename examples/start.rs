@@ -3,12 +3,12 @@ use async_trait::async_trait;
 use dotenvy::dotenv;
 use grammers_client::{Client as GClient, types::Message};
 
-use std::env;
+use std::{env, sync::Arc};
 use tg_kit::{
     Client,
     dispatcher::EventDispatcher,
     handlers::new_message_handler::{MessageHandler, NewMessageHandler},
-    rules::{MessageRule, TextRule},
+    rules::{MessageRule, RegexRule, TextRule},
     types::Payload,
 };
 
@@ -20,7 +20,7 @@ async fn get_dispatcher() -> Result<EventDispatcher> {
         .build();
 
     EventDispatcher::builder()
-        .with_handler(Box::new(message_handler))
+        .with_handler(Arc::new(message_handler))
         .build()
         .await
 }
@@ -57,7 +57,10 @@ pub struct StartHandler;
 #[async_trait]
 impl MessageHandler for StartHandler {
     async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
-        vec![Box::new(TextRule::new("/start".to_string()))]
+        vec![
+            Box::new(TextRule::new("/start".to_string())),
+            Box::new(RegexRule::new(r"/start").unwrap()),
+        ]
     }
 
     async fn handle(&self, client: &GClient, message: &Message, _payload: Payload) -> Result<()> {

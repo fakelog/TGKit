@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{handlers::EventHandler, middleware::Middleware};
 use anyhow::Result;
 
@@ -5,7 +7,7 @@ use super::EventDispatcher;
 
 /// Builder для создания и настройки EventDispatcher
 pub struct EventDispatcherBuilder {
-    handlers: Vec<Box<dyn EventHandler>>,
+    handlers: Vec<Arc<dyn EventHandler>>,
     middlewares: Vec<Box<dyn Middleware>>,
 }
 
@@ -19,7 +21,7 @@ impl EventDispatcherBuilder {
     }
 
     /// Добавляет обработчик событий
-    pub fn with_handler(mut self, handler: Box<dyn EventHandler>) -> Self {
+    pub fn with_handler(mut self, handler: Arc<dyn EventHandler>) -> Self {
         self.handlers.push(handler);
         self
     }
@@ -31,7 +33,7 @@ impl EventDispatcherBuilder {
     }
 
     /// Добавляет несколько обработчиков
-    pub fn with_handlers(mut self, handlers: Vec<Box<dyn EventHandler>>) -> Self {
+    pub fn with_handlers(mut self, handlers: Vec<Arc<dyn EventHandler>>) -> Self {
         self.handlers.extend(handlers);
         self
     }

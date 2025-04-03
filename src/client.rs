@@ -89,11 +89,17 @@ impl Client {
                     break;
                 }
                 update = upd => {
+
                     match update {
                         Ok(update) => {
-                            if let Err(e) = self.dispatcher.dispatch(&self.client, &update).await {
-                                error!("Error handling update: {}", e);
-                            }
+                            let client = self.client.clone();
+                            let dispatcher = self.dispatcher.clone();
+                            tokio::task::spawn(async move {
+                                if let Err(e) = dispatcher.dispatch(&client, &update).await {
+                                    error!("Error handling update: {}", e);
+                                }
+                            });
+
                         }
                         Err(e) => {
                             error!("Error receiving update: {}", e);

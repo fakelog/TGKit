@@ -1,4 +1,6 @@
 mod builder;
+use std::sync::Arc;
+
 use anyhow::Result;
 use builder::EventDispatcherBuilder;
 use grammers_client::{Client, Update};
@@ -8,8 +10,9 @@ use crate::{
     middleware::{Middleware, MiddlewareContainer},
 };
 
+#[derive(Clone)]
 pub struct EventDispatcher {
-    handlers: Vec<Box<dyn EventHandler>>,
+    handlers: Vec<Arc<dyn EventHandler>>,
     middlewares: MiddlewareContainer,
 }
 
@@ -22,7 +25,7 @@ impl EventDispatcher {
         EventDispatcherBuilder::new()
     }
 
-    pub fn register_handler(&mut self, handler: Box<dyn EventHandler>) {
+    pub fn register_handler(&mut self, handler: Arc<dyn EventHandler>) {
         self.handlers.push(handler);
     }
 
