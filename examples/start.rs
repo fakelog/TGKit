@@ -83,9 +83,12 @@ impl MessageHandler for RegHandler {
     }
 
     async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
-        client
-            .tg_client
-            .send_message(message.chat(), "Тест")
+        let conv = client.conversation(message.chat());
+        conv.send_message("Как вас зовут?").await?;
+
+        let response = conv.get_response().await?;
+        response
+            .reply(format!("Привет, {}!", response.text()))
             .await?;
 
         Ok(())

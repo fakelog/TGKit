@@ -35,6 +35,21 @@ impl EventDispatcher {
     }
 
     pub async fn dispatch(&self, client: &Client, update: &Update) -> Result<()> {
+        if !client.conversations.is_empty().await {
+            if let Update::NewMessage(message) = update {
+                if !message.outgoing() {
+                    let chat = &message.chat();
+                    if client.conversations.has_conversation(chat.id()).await {
+                        client
+                            .conversations
+                            .update_message(chat.id(), message.clone())
+                            .await;
+                        return Ok(());
+                    };
+                }
+            }
+        };
+
         self.middlewares.execute_before(client, update).await?;
 
         for handler in self.handlers.iter() {

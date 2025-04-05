@@ -5,6 +5,7 @@ use log::{error, info};
 use tokio::select;
 
 use crate::{
+    conversation::{Conversation, ConversationContainer},
     dispatcher::EventDispatcher,
     utils::{BotReconnectionPolicy, save_session},
 };
@@ -14,6 +15,7 @@ pub struct Client {
     pub tg_client: TGClient,
     pub dispatcher: EventDispatcher,
     session_file: String,
+    pub(crate) conversations: ConversationContainer,
 }
 
 impl Client {
@@ -34,7 +36,7 @@ impl Client {
             tg_client,
             dispatcher,
             session_file,
-            dispatcher,
+            conversations: ConversationContainer::new(),
         })
     }
 
@@ -115,6 +117,10 @@ impl Client {
 
     fn load_session(session_file: &str) -> Result<Session> {
         Session::load_file_or_create(session_file).context("Failed to load or create session")
+    }
+
+    pub fn conversation(&self, chat: Chat) -> Conversation {
+        Conversation::new(self, chat)
     }
 
     pub async fn run(&self) -> Result<()> {
