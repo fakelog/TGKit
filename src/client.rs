@@ -9,6 +9,7 @@ use crate::{
     utils::{BotReconnectionPolicy, save_session},
 };
 
+#[derive(Clone)]
 pub struct Client {
     pub client: GClient,
     pub dispatcher: EventDispatcher,
