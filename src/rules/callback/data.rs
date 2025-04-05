@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::types::PayloadItem;
 
 use super::CallbackRule;
@@ -5,11 +7,12 @@ use async_trait::async_trait;
 use grammers_client::types::CallbackQuery;
 
 pub struct DataRule {
-    data: String,
+    data: Cow<'static, str>,
 }
 
 impl DataRule {
-    pub fn new(data: String) -> Self {
+    pub fn new(data: impl Into<Cow<'static, str>>) -> Self {
+        let data = data.into();
         Self { data }
     }
 }

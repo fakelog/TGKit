@@ -1,19 +1,19 @@
+use std::borrow::Cow;
+
 use crate::types::PayloadItem;
 
 use super::MessageRule;
 use async_trait::async_trait;
 
 pub struct TextRule {
-    pattern: String,
+    text: Cow<'static, str>,
     lower: bool,
 }
 
 impl TextRule {
-    pub fn new(pattern: String) -> Self {
-        TextRule {
-            pattern,
-            lower: true,
-        }
+    pub fn new(text: impl Into<Cow<'static, str>>) -> Self {
+        let text = text.into();
+        Self { text, lower: true }
     }
 
     pub fn lower(&mut self, value: bool) {
@@ -30,6 +30,6 @@ impl MessageRule for TextRule {
             message.to_string()
         };
 
-        Box::new(message_text == self.pattern) as PayloadItem
+        Box::new(message_text == self.text) as PayloadItem
     }
 }

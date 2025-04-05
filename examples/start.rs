@@ -57,7 +57,7 @@ pub struct StartHandler;
 #[async_trait]
 impl MessageHandler for StartHandler {
     async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
-        vec![Box::new(TextRule::new("/start".to_string()))]
+        vec![Box::new(TextRule::new("/start"))]
     }
 
     async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
@@ -79,7 +79,7 @@ pub struct RegHandler;
 #[async_trait]
 impl MessageHandler for RegHandler {
     async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
-        vec![Box::new(CommandRule::new("reg".to_string()))]
+        vec![Box::new(CommandRule::new("reg"))]
     }
 
     async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {

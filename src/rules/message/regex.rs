@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use async_trait::async_trait;
 use regex::Regex;
 
@@ -15,9 +17,11 @@ pub struct RegexRule {
 }
 
 impl RegexRule {
-    pub fn new(pattern: &str) -> Result<Self, regex::Error> {
-        let regex = Regex::new(pattern)?;
-        Ok(RegexRule { pattern: regex })
+    pub fn new(pattern: impl Into<Cow<'static, str>>) -> Result<Self, regex::Error> {
+        let pattern = pattern.into();
+        let regex = Regex::new(&pattern)?;
+
+        Ok(Self { pattern: regex })
     }
 }
 
