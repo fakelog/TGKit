@@ -2,8 +2,10 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::{Client, Update};
+use grammers_client::Update;
 use tokio::sync::RwLock;
+
+use crate::Client;
 
 #[async_trait]
 pub trait Middleware: Send + Sync {

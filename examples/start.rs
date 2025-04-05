@@ -1,14 +1,14 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use dotenvy::dotenv;
-use grammers_client::{Client as GClient, types::Message};
+use grammers_client::types::Message;
 
 use std::{env, sync::Arc};
 use tg_kit::{
     Client,
     dispatcher::EventDispatcher,
     handlers::new_message_handler::{MessageHandler, NewMessageHandler},
-    rules::{MessageRule, RegexRule, TextRule},
+    rules::{CommandRule, MessageRule, TextRule},
     types::Payload,
 };
 
@@ -16,7 +16,8 @@ const SESSION_FILE: &str = "example.session";
 
 async fn get_dispatcher() -> Result<EventDispatcher> {
     let message_handler = NewMessageHandler::builder()
-        .with_handler(StartHandler {})
+        .with_handler(StartHandler)
+        .with_handler(RegHandler)
         .build();
 
     EventDispatcher::builder()
@@ -50,21 +51,42 @@ async fn main() -> Result<()> {
     client.run().await
 }
 
-// Create a new message handler
 #[derive(Debug)]
 pub struct StartHandler;
 
 #[async_trait]
 impl MessageHandler for StartHandler {
     async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
-        vec![
-            Box::new(TextRule::new("/start".to_string())),
-            Box::new(RegexRule::new(r"/start").unwrap()),
-        ]
+        vec![Box::new(TextRule::new("/start".to_string()))]
     }
 
-    async fn handle(&self, client: &GClient, message: &Message, _payload: Payload) -> Result<()> {
-        client.send_message(message.chat(), "Тест").await?;
+    async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
+        let tg_client = &client.tg_client;
+        tg_client
+            .send_message(
+                message.chat(),
+                "Для продолжения вам нужно зарегестрироваться! /reg",
+            )
+            .await?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct RegHandler;
+
+#[async_trait]
+impl MessageHandler for RegHandler {
+    async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
+        vec![Box::new(CommandRule::new("reg".to_string()))]
+    }
+
+    async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
+        client
+            .tg_client
+            .send_message(message.chat(), "Тест")
+            .await?;
 
         Ok(())
     }

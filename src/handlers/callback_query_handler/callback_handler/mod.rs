@@ -1,9 +1,9 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::{Client, types::CallbackQuery};
+use grammers_client::types::CallbackQuery;
 use std::fmt::Debug;
 
-use crate::{rules::CallbackRule, types::Payload};
+use crate::{Client, rules::CallbackRule, types::Payload};
 
 #[async_trait]
 pub trait CallbackHandler: Sync + Send + Debug {

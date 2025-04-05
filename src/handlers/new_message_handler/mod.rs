@@ -6,10 +6,10 @@ pub use message_handler::MessageHandler;
 use anyhow::{Ok, Result};
 use async_trait::async_trait;
 use builder::NewMessageHandlerBuilder;
-use grammers_client::{Client, Update};
+use grammers_client::Update;
 
 use super::EventHandler;
-use crate::{middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
+use crate::{Client, middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
 
 pub struct NewMessageHandler {
     handlers: Vec<Box<dyn MessageHandler>>,

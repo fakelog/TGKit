@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use grammers_client::{Client as GClient, Config, InitParams};
+use grammers_client::{Client as TGClient, Config, InitParams, types::Chat};
 use grammers_session::Session;
 use log::{error, info};
 use tokio::select;
@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(Clone)]
 pub struct Client {
-    pub client: GClient,
+    pub tg_client: TGClient,
     pub dispatcher: EventDispatcher,
     session_file: String,
 }
@@ -27,21 +27,22 @@ impl Client {
         let session = Self::load_session(&session_file)?;
         let config = Self::build_config(api_id, api_hash, session, None);
 
-        let client = Self::connect(config).await?;
-        Self::authenticate(&client, &token, &session_file).await?;
+        let tg_client = Self::connect(config).await?;
+        Self::authenticate(&tg_client, &token, &session_file).await?;
 
         Ok(Self {
-            client,
+            tg_client,
+            dispatcher,
             session_file,
             dispatcher,
         })
     }
 
-    async fn authenticate(client: &GClient, token: &str, session_file: &str) -> Result<()> {
-        if !client.is_authorized().await? {
+    async fn authenticate(tg_client: &TGClient, token: &str, session_file: &str) -> Result<()> {
+        if !tg_client.is_authorized().await? {
             info!("Signing in...");
-            client.bot_sign_in(token).await?;
-            let _ = save_session(client, session_file);
+            tg_client.bot_sign_in(token).await?;
+            let _ = save_session(tg_client, session_file);
             info!("Signed in!");
         }
 
@@ -72,9 +73,9 @@ impl Client {
         }
     }
 
-    async fn connect(config: Config) -> Result<GClient> {
+    async fn connect(config: Config) -> Result<TGClient> {
         info!("Connecting to Telegram...");
-        GClient::connect(config)
+        TGClient::connect(config)
             .await
             .context("Failed to connect to Telegram API")
     }
@@ -82,7 +83,7 @@ impl Client {
     async fn handle_update(&self) -> Result<()> {
         loop {
             let exit = tokio::signal::ctrl_c();
-            let upd = self.client.next_update();
+            let upd = self.tg_client.next_update();
 
             select! {
                 _ = exit => {
@@ -90,10 +91,9 @@ impl Client {
                     break;
                 }
                 update = upd => {
-
                     match update {
                         Ok(update) => {
-                            let client = self.client.clone();
+                            let client = self.clone();
                             let dispatcher = self.dispatcher.clone();
                             tokio::task::spawn(async move {
                                 if let Err(e) = dispatcher.dispatch(&client, &update).await {
@@ -129,7 +129,7 @@ impl Client {
 
     fn shutdown(&self) {
         info!("Shutting down bot...");
-        let _ = save_session(&self.client, &self.session_file);
+        let _ = save_session(&self.tg_client, &self.session_file);
     }
 }
 

@@ -3,9 +3,10 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use builder::EventDispatcherBuilder;
-use grammers_client::{Client, Update};
+use grammers_client::Update;
 
 use crate::{
+    Client,
     handlers::EventHandler,
     middleware::{Middleware, MiddlewareContainer},
 };

@@ -1,9 +1,9 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::{Client, types::Message};
+use grammers_client::types::Message;
 use std::fmt::Debug;
 
-use crate::{rules::MessageRule, types::Payload};
+use crate::{Client, rules::MessageRule, types::Payload};
 
 #[async_trait]
 pub trait MessageHandler: Sync + Send + Debug {
