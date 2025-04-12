@@ -1,8 +1,9 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use dotenvy::dotenv;
 use grammers_client::types::Message;
-
+use log::LevelFilter;
+use logforth::append;
 use std::{env, sync::Arc};
 use tg_kit::{
     Client,
@@ -28,14 +29,22 @@ async fn get_dispatcher() -> Result<EventDispatcher> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    logforth::builder()
+        .dispatch(|d| {
+            d.filter(LevelFilter::Info)
+                .append(append::Stdout::default())
+        })
+        .apply();
+
     dotenv().ok();
 
-    let api_hash = env::var("API_HASH").expect("API_HASH not set");
+    let api_hash = env::var("API_HASH").context("API_HASH not set")?;
     let api_id = env::var("API_ID")
-        .expect("API_ID not set")
+        .context("API_ID not set")?
         .parse()
-        .expect("API_ID invalid");
-    let token = env::var("TOKEN").expect("TOKEN not set");
+        .context("API_ID invalid")?;
+    let token = env::var("TOKEN").context("TOKEN not set")?;
+
     let dispatcher = get_dispatcher().await?;
 
     let client = Client::new(

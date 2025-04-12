@@ -10,7 +10,7 @@ grammers-session.git = "https://github.com/Lonami/grammers.git"
 grammers-tl-types.git = "https://github.com/Lonami/grammers.git"
 linkme = "0.3"
 log = "0.4"
-tokio = { version = "1", features = [ "full" ] }
+tokio = { version = "1", features = ["full"] }
 
 [workspace.package]
 version = "0.2.0"
@@ -33,3 +33,4 @@ tokio.workspace = true
 
 [dev-dependencies]
 dotenvy = "0.15"
+logforth = "0.24.0"
