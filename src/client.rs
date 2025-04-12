@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{Context, Result};
 use grammers_client::{Client as TGClient, Config, InitParams, types::Chat};
 use grammers_session::Session;
@@ -83,6 +85,8 @@ impl Client {
     }
 
     async fn handle_update(&self) -> Result<()> {
+        let client = Arc::new(self.clone());
+
         loop {
             let exit = tokio::signal::ctrl_c();
             let upd = self.tg_client.next_update();
@@ -95,10 +99,11 @@ impl Client {
                 update = upd => {
                     match update {
                         Ok(update) => {
-                            let client = self.clone();
+                            let client = Arc::clone(&client);
+
                             let dispatcher = self.dispatcher.clone();
                             tokio::task::spawn(async move {
-                                if let Err(e) = dispatcher.dispatch(&client, &update).await {
+                                if let Err(e) = dispatcher.dispatch(client, &update).await {
                                     error!("Error handling update: {}", e);
                                 }
                             });

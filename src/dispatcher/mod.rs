@@ -34,7 +34,7 @@ impl EventDispatcher {
         self.middlewares.add(middleware).await;
     }
 
-    pub async fn dispatch(&self, client: &Client, update: &Update) -> Result<()> {
+    pub async fn dispatch(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         if !client.conversations.is_empty().await {
             if let Update::NewMessage(message) = update {
                 if !message.outgoing() {
@@ -50,17 +50,25 @@ impl EventDispatcher {
             }
         };
 
-        self.middlewares.execute_before(client, update).await?;
+        self.middlewares
+            .execute_before(Arc::clone(&client), update)
+            .await?;
 
         for handler in self.handlers.iter() {
             let handler_middlewares = handler.middlewares().await;
 
-            handler_middlewares.execute_before(client, update).await?;
-            handler.handle(client, update).await?;
-            handler_middlewares.execute_after(client, update).await?;
+            handler_middlewares
+                .execute_before(Arc::clone(&client), update)
+                .await?;
+            handler.handle(Arc::clone(&client), update).await?;
+            handler_middlewares
+                .execute_after(Arc::clone(&client), update)
+                .await?;
         }
 
-        self.middlewares.execute_after(client, update).await?;
+        self.middlewares
+            .execute_after(Arc::clone(&client), update)
+            .await?;
 
         Ok(())
     }

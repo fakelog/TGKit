@@ -7,6 +7,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use builder::CallbackQueryHandlerBuilder;
 use grammers_client::{Update, types::CallbackQuery};
+use std::sync::Arc;
 
 use super::EventHandler;
 use crate::{Client, middleware::MiddlewareContainer, rules::CallbackRule, types::Payload};
@@ -28,7 +29,7 @@ impl EventHandler for CallbackQueryHandler {
         self.middlewares.clone()
     }
 
-    async fn handle(&self, client: &Client, update: &Update) -> Result<()> {
+    async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         // Handle only callback query updates
         if let Update::CallbackQuery(query) = update {
             for handler in &self.handlers {
@@ -37,6 +38,7 @@ impl EventHandler for CallbackQueryHandler {
 
                 // Если payload не пустой, обрабатываем запрос
                 if !payload.is_empty() {
+                    let client = Arc::clone(&client);
                     handler.handle(client, query, payload).await?;
                 }
             }

@@ -69,7 +69,12 @@ impl MessageHandler for StartHandler {
         vec![Box::new(TextRule::new("/start"))]
     }
 
-    async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
+    async fn handle(
+        &self,
+        client: Arc<Client>,
+        message: &Message,
+        _payload: Payload,
+    ) -> Result<()> {
         let tg_client = &client.tg_client;
         tg_client
             .send_message(
@@ -91,7 +96,12 @@ impl MessageHandler for RegHandler {
         vec![Box::new(CommandRule::new("reg"))]
     }
 
-    async fn handle(&self, client: &Client, message: &Message, _payload: Payload) -> Result<()> {
+    async fn handle(
+        &self,
+        client: Arc<Client>,
+        message: &Message,
+        _payload: Payload,
+    ) -> Result<()> {
         let conv = client.conversation(message.chat());
         conv.send_message("Как вас зовут?").await?;
 

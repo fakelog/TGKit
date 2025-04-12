@@ -9,8 +9,8 @@ use crate::Client;
 
 #[async_trait]
 pub trait Middleware: Send + Sync {
-    async fn before(&self, client: &Client, update: &Update) -> Result<()>;
-    async fn after(&self, client: &Client, update: &Update) -> Result<()>;
+    async fn before(&self, client: Arc<Client>, update: &Update) -> Result<()>;
+    async fn after(&self, client: Arc<Client>, update: &Update) -> Result<()>;
 }
 
 #[derive(Clone)]
@@ -35,17 +35,19 @@ impl MiddlewareContainer {
         self.middlewares.write().await.push(middleware);
     }
 
-    pub async fn execute_before(&self, client: &Client, update: &Update) -> Result<()> {
+    pub async fn execute_before(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         let middlewares = self.middlewares.read().await;
         for middleware in middlewares.iter() {
+            let client = Arc::clone(&client);
             middleware.before(client, update).await?;
         }
         Ok(())
     }
 
-    pub async fn execute_after(&self, client: &Client, update: &Update) -> Result<()> {
+    pub async fn execute_after(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         let middlewares = self.middlewares.read().await;
         for middleware in middlewares.iter() {
+            let client = Arc::clone(&client);
             middleware.after(client, update).await?;
         }
         Ok(())

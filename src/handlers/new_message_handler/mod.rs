@@ -1,6 +1,8 @@
 mod builder;
 mod message_handler;
 
+use std::sync::Arc;
+
 pub use message_handler::MessageHandler;
 
 use anyhow::{Ok, Result};
@@ -28,7 +30,7 @@ impl EventHandler for NewMessageHandler {
         self.middlewares.clone()
     }
 
-    async fn handle(&self, client: &Client, update: &Update) -> Result<()> {
+    async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         // Handle only new message updates
         if let Update::NewMessage(message) = update {
             for handler in &self.handlers {
@@ -36,6 +38,7 @@ impl EventHandler for NewMessageHandler {
                 let payload = check_rules(&rules, message.text()).await;
 
                 if !payload.is_empty() {
+                    let client = Arc::clone(&client);
                     handler.handle(client, message, payload).await?;
                 }
             }
