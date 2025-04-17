@@ -8,3 +8,4 @@ pub mod types;
 mod utils;
 
 pub use client::Client;
+pub use middleware::Middleware;
