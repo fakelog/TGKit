@@ -4,6 +4,7 @@ use crate::types::PayloadItem;
 
 use super::MessageRule;
 use async_trait::async_trait;
+use grammers_client::types::Message;
 
 pub struct TextRule {
     text: Cow<'static, str>,
@@ -23,7 +24,9 @@ impl TextRule {
 
 #[async_trait]
 impl MessageRule for TextRule {
-    async fn matches(&self, message: &str) -> PayloadItem {
+    async fn matches(&self, message: &Message) -> PayloadItem {
+        let message = message.text();
+
         let message_text = if self.lower {
             message.to_lowercase()
         } else {

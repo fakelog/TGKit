@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 use async_trait::async_trait;
+use grammers_client::types::Message;
 
 use crate::types::PayloadItem;
 
@@ -27,7 +28,9 @@ impl CommandRule {
 
 #[async_trait]
 impl MessageRule for CommandRule {
-    async fn matches(&self, message: &str) -> PayloadItem {
+    async fn matches(&self, message: &Message) -> PayloadItem {
+        let message = message.text();
+
         let message_text = if self.lower {
             message.to_lowercase()
         } else {

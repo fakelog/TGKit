@@ -8,7 +8,7 @@ pub use message_handler::MessageHandler;
 use anyhow::{Ok, Result};
 use async_trait::async_trait;
 use builder::NewMessageHandlerBuilder;
-use grammers_client::Update;
+use grammers_client::{Update, types::Message};
 
 use super::EventHandler;
 use crate::{Client, middleware::MiddlewareContainer, rules::MessageRule, types::Payload};
@@ -35,7 +35,7 @@ impl EventHandler for NewMessageHandler {
         if let Update::NewMessage(message) = update {
             for handler in &self.handlers {
                 let rules: Vec<Box<dyn MessageRule>> = handler.rules().await;
-                let payload = check_rules(&rules, message.text()).await;
+                let payload = check_rules(&rules, message).await;
 
                 if !payload.is_empty() {
                     let client = Arc::clone(&client);
@@ -48,7 +48,7 @@ impl EventHandler for NewMessageHandler {
     }
 }
 
-async fn check_rules(rules: &[Box<dyn MessageRule>], message_text: &str) -> Payload {
+async fn check_rules(rules: &[Box<dyn MessageRule>], message_text: &Message) -> Payload {
     let mut payload: Payload = Vec::new();
 
     for rule in rules {

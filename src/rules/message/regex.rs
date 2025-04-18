@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 use async_trait::async_trait;
+use grammers_client::types::Message;
 use regex::Regex;
 
 use crate::types::PayloadItem;
@@ -27,8 +28,8 @@ impl RegexRule {
 
 #[async_trait]
 impl MessageRule for RegexRule {
-    async fn matches(&self, message: &str) -> PayloadItem {
-        let message = message.to_lowercase();
+    async fn matches(&self, message: &Message) -> PayloadItem {
+        let message = message.text().to_lowercase();
 
         if let Some(captures) = self.pattern.captures(&message) {
             // Преобразуем найденные группы в вектор строк
