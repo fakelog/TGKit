@@ -17,8 +17,9 @@ impl TextRule {
         Self { text, lower: true }
     }
 
-    pub fn lower(&mut self, value: bool) {
+    pub fn lower(mut self, value: bool) -> Self {
         self.lower = value;
+        self
     }
 }
 
