@@ -1,10 +1,11 @@
 use crate::middleware::{Middleware, MiddlewareContainer};
 
-use super::{NewMessageHandler, message_handler::MessageHandler};
+use super::{NewMessageHandler, message_handler::MessageHandler, rule_checker::RuleChecker};
 
 pub struct NewMessageHandlerBuilder {
     handlers: Vec<Box<dyn MessageHandler>>,
     middlewares: MiddlewareContainer,
+    rule_checker: RuleChecker,
 }
 
 impl NewMessageHandlerBuilder {
@@ -12,6 +13,7 @@ impl NewMessageHandlerBuilder {
         Self {
             handlers: Vec::new(),
             middlewares: MiddlewareContainer::new(),
+            rule_checker: RuleChecker::new().strict(true),
         }
     }
     pub fn with_handler<H: MessageHandler + 'static>(mut self, handler: H) -> Self {
@@ -28,6 +30,7 @@ impl NewMessageHandlerBuilder {
         NewMessageHandler {
             handlers: self.handlers,
             middlewares: self.middlewares,
+            rule_checker: self.rule_checker,
         }
     }
 }
