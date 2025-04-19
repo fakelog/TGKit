@@ -9,7 +9,7 @@ use tg_kit::{
     Client,
     dispatcher::EventDispatcher,
     handlers::new_message_handler::{MessageHandler, NewMessageHandler},
-    rules::{CommandRule, MessageRule, TextRule},
+    rules::{CommandRule, MessageRule, OrRule, TextRule},
     types::Payload,
 };
 
@@ -66,7 +66,12 @@ pub struct StartHandler;
 #[async_trait]
 impl MessageHandler for StartHandler {
     async fn rules(&self) -> Vec<Box<dyn MessageRule>> {
-        vec![Box::new(TextRule::new("/start"))]
+        let text_rule = TextRule::new("/start");
+        let command_rule = CommandRule::new("starting");
+
+        vec![Box::new(
+            OrRule::new().add_rule(text_rule).add_rule(command_rule),
+        )]
     }
 
     async fn handle(

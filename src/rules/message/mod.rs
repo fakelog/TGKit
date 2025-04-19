@@ -1,12 +1,15 @@
 mod command;
+mod or;
 mod regex;
 mod text;
 
-use crate::types::PayloadItem;
 use async_trait::async_trait;
+use grammers_client::types::Message;
+
+use crate::types::PayloadItem;
 
 pub use command::CommandRule;
-use grammers_client::types::Message;
+pub use or::OrRule;
 pub use regex::*;
 pub use text::TextRule;
 
