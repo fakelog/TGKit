@@ -6,19 +6,19 @@ pub use conversation_state::ConversationState;
 
 use anyhow::Result;
 use grammers_client::types::{Chat, Message};
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 use tokio::time;
 
 use crate::Client;
 
-pub struct Conversation<'a> {
-    client: &'a Client,
+pub struct Conversation {
+    client: Arc<Client>,
     chat: Chat,
     timeout: Duration,
 }
 
-impl<'a> Conversation<'a> {
-    pub fn new(client: &'a Client, chat: Chat) -> Self {
+impl Conversation {
+    pub fn new(client: Arc<Client>, chat: Chat) -> Self {
         Self {
             client,
             chat,
@@ -69,7 +69,7 @@ impl<'a> Conversation<'a> {
     }
 }
 
-impl Drop for Conversation<'_> {
+impl Drop for Conversation {
     fn drop(&mut self) {
         let client = self.client.clone();
         let chat_id = self.chat.id();

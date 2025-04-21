@@ -12,10 +12,9 @@ use crate::{
     utils::{BotReconnectionPolicy, save_session},
 };
 
-#[derive(Clone)]
 pub struct Client {
     pub tg_client: TGClient,
-    pub dispatcher: EventDispatcher,
+    pub dispatcher: Arc<EventDispatcher>,
     session_file: String,
     pub(crate) conversations: ConversationContainer,
 }
@@ -26,20 +25,20 @@ impl Client {
         api_id: i32,
         session_file: String,
         token: String,
-        dispatcher: EventDispatcher,
-    ) -> Result<Self> {
+        dispatcher: Arc<EventDispatcher>,
+    ) -> Result<Arc<Self>> {
         let session = Self::load_session(&session_file)?;
         let config = Self::build_config(api_id, api_hash, session, None);
 
         let tg_client = Self::connect(config).await?;
         Self::authenticate(&tg_client, &token, &session_file).await?;
 
-        Ok(Self {
+        Ok(Arc::new(Self {
             tg_client,
             dispatcher,
             session_file,
             conversations: ConversationContainer::new(),
-        })
+        }))
     }
 
     async fn authenticate(tg_client: &TGClient, token: &str, session_file: &str) -> Result<()> {
@@ -84,9 +83,7 @@ impl Client {
             .context("Failed to connect to Telegram API")
     }
 
-    async fn handle_update(&self) -> Result<()> {
-        let client = Arc::new(self.clone());
-
+    async fn handle_update(self: Arc<Self>) -> Result<()> {
         loop {
             let exit = tokio::signal::ctrl_c();
             let upd = self.tg_client.next_update();
@@ -99,9 +96,9 @@ impl Client {
                 update = upd => {
                     match update {
                         Ok(update) => {
-                            let client = Arc::clone(&client);
+                            let client = Arc::clone(&self);
 
-                            let dispatcher = self.dispatcher.clone();
+                            let dispatcher = Arc::clone(&self.dispatcher);
                             tokio::task::spawn(async move {
                                 if let Err(e) = dispatcher.dispatch(client, &update).await {
                                     error!("Error handling update: {}", e);
@@ -124,11 +121,11 @@ impl Client {
         Session::load_file_or_create(session_file).context("Failed to load or create session")
     }
 
-    pub fn conversation(&self, chat: Chat) -> Conversation {
+    pub fn conversation(self: Arc<Self>, chat: Chat) -> Conversation {
         Conversation::new(self, chat)
     }
 
-    pub async fn run(&self) -> Result<()> {
+    pub async fn run(self: Arc<Self>) -> Result<()> {
         info!("Bot is running...");
         if let Err(e) = self.handle_update().await {
             error!("Update handling error: {e}");
