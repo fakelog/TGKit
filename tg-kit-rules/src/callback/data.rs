@@ -1,10 +1,8 @@
 use std::borrow::Cow;
 
-use crate::types::PayloadItem;
-
-use super::CallbackRule;
 use async_trait::async_trait;
 use grammers_client::types::CallbackQuery;
+use tg_kit::{rules::CallbackRule, types::PayloadItem};
 
 pub struct DataRule {
     data: Cow<'static, str>,

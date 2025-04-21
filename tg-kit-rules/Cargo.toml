@@ -1,0 +1,10 @@
+[package]
+name = "tg-kit-rules"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+grammers-client.workspace = true
+tg-kit.workspace = true
+regex.workspace = true

@@ -1,9 +1,6 @@
 use async_trait::async_trait;
 use grammers_client::types::Message;
-
-use crate::types::PayloadItem;
-
-use super::MessageRule;
+use tg_kit::{rules::MessageRule, types::PayloadItem};
 
 pub struct OrRule {
     rules: Vec<Box<dyn MessageRule + Send + Sync>>,

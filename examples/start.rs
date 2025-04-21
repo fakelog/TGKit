@@ -9,9 +9,10 @@ use tg_kit::{
     Client,
     dispatcher::EventDispatcher,
     handlers::new_message_handler::{MessageHandler, NewMessageHandler},
-    rules::{CommandRule, MessageRule, OrRule, TextRule},
+    rules::MessageRule,
     types::Payload,
 };
+use tg_kit_rules::message::{CommandRule, OrRule, TextRule};
 
 const SESSION_FILE: &str = "example.session";
 

@@ -1,10 +1,7 @@
-use std::borrow::Cow;
-
-use crate::types::PayloadItem;
-
-use super::MessageRule;
 use async_trait::async_trait;
 use grammers_client::types::Message;
+use std::borrow::Cow;
+use tg_kit::{rules::MessageRule, types::PayloadItem};
 
 pub struct TextRule {
     text: Cow<'static, str>,
