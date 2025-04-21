@@ -4,25 +4,28 @@ mod conversation_state;
 pub use conversation_container::ConversationContainer;
 pub use conversation_state::ConversationState;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use grammers_client::types::{Chat, Message};
 use std::{sync::Arc, time::Duration};
-use tokio::time;
+use tokio::{sync::mpsc, time::timeout};
 
 use crate::Client;
 
 pub struct Conversation {
     client: Arc<Client>,
     chat: Chat,
+    message_rx: mpsc::Receiver<Message>,
     timeout: Duration,
 }
 
 impl Conversation {
     pub fn new(client: Arc<Client>, chat: Chat) -> Self {
+        let message_rx = client.conversations.register_conversation(chat.id());
         Self {
             client,
             chat,
-            timeout: Duration::from_secs(60),
+            message_rx,
+            timeout: Duration::from_secs(10),
         }
     }
 
@@ -31,50 +34,27 @@ impl Conversation {
         self
     }
 
-    pub async fn send_message(&self, text: &str) -> Result<()> {
-        self.client.tg_client.send_message(&self.chat, text).await?;
-        Ok(())
+    pub async fn send_message(&self, text: &str) -> Result<Message> {
+        self.client
+            .tg_client
+            .send_message(&self.chat, text)
+            .await
+            .context("Failed to send message")
     }
 
-    pub async fn get_response(&self) -> Result<Message> {
-        self.client
-            .conversations
-            .add_conversation(self.chat.clone())
-            .await;
-
-        let start = time::Instant::now();
-        let chat_id = &self.chat.id();
-
-        loop {
-            if start.elapsed() > self.timeout {
-                return Err(anyhow::anyhow!("Timeout waiting for response"));
-            }
-
-            match time::timeout(
-                Duration::from_secs(1),
-                self.client.conversations.get_message(chat_id),
-            )
-            .await
-            {
-                Ok(message) => {
-                    if let Some(msg) = message {
-                        return Ok(msg);
-                    } else {
-                        continue;
-                    }
-                }
-                Err(_) => continue,
-            }
+    pub async fn get_response(&mut self) -> Result<Message> {
+        match timeout(self.timeout, self.message_rx.recv()).await {
+            Ok(Some(msg)) => Ok(msg),
+            Ok(None) => Err(anyhow::anyhow!("Conversation channel closed")),
+            Err(_) => Err(anyhow::anyhow!("Timeout waiting for response")),
         }
     }
 }
 
 impl Drop for Conversation {
     fn drop(&mut self) {
-        let client = self.client.clone();
-        let chat_id = self.chat.id();
-        tokio::spawn(async move {
-            client.conversations.remove_conversation(chat_id).await;
-        });
+        self.client
+            .conversations
+            .unregister_conversation(self.chat.id());
     }
 }

@@ -46,15 +46,16 @@ impl EventDispatcher {
     }
 
     pub async fn dispatch(&self, client: Arc<Client>, update: &Update) -> Result<()> {
-        if !client.conversations.is_empty().await {
+        if !client.conversations.is_empty() {
             if let Update::NewMessage(message) = update {
                 if !message.outgoing() {
                     let chat = &message.chat();
-                    if client.conversations.has_conversation(chat.id()).await {
+
+                    if client.conversations.has_conversation(chat.id()) {
                         client
                             .conversations
-                            .update_message(chat.id(), message.clone())
-                            .await;
+                            .handle_incoming_message(chat.id(), message.clone())?;
+
                         return Ok(());
                     };
                 }

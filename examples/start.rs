@@ -107,7 +107,7 @@ impl MessageHandler for RegHandler {
         message: &Message,
         _payload: Payload,
     ) -> Result<()> {
-        let conv = client.conversation(message.chat());
+        let mut conv = client.conversation(message.chat());
         conv.send_message("Как вас зовут?").await?;
 
         let response = conv.get_response().await?;

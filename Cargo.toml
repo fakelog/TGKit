@@ -24,6 +24,7 @@ edition.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
+dashmap = "6.1.0"
 grammers-client.workspace = true
 grammers-session.workspace = true
 grammers-tl-types.workspace = true
