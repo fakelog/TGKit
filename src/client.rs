@@ -84,6 +84,8 @@ impl Client {
     }
 
     async fn handle_update(self: Arc<Self>) -> Result<()> {
+        info!("Starting update handling loop...");
+
         loop {
             let exit = tokio::signal::ctrl_c();
             let upd = self.tg_client.next_update();
@@ -94,22 +96,21 @@ impl Client {
                     break;
                 }
                 update = upd => {
-                    match update {
-                        Ok(update) => {
-                            let client = Arc::clone(&self);
+                    let client = Arc::clone(&self);
+                    let dispatcher = self.dispatcher.clone();
 
-                            let dispatcher = self.dispatcher.clone();
-                            tokio::task::spawn(async move {
+                    tokio::spawn(async move {
+                        match update {
+                            Ok(update) => {
                                 if let Err(e) = dispatcher.dispatch(client, &update).await {
                                     error!("Error handling update: {}", e);
                                 }
-                            });
-
+                            }
+                            Err(e) => {
+                                error!("Error receiving update: {}", e);
+                            }
                         }
-                        Err(e) => {
-                            error!("Error receiving update: {}", e);
-                        }
-                    }
+                    });
                 }
             }
         }
