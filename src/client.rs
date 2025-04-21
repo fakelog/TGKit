@@ -136,14 +136,18 @@ impl Client {
         Ok(())
     }
 
-    fn shutdown(&self) {
+    fn shutdown(&self) -> Result<()> {
         info!("Shutting down bot...");
-        let _ = save_session(&self.tg_client, &self.session_file);
+        save_session(&self.tg_client, &self.session_file)?;
+
+        Ok(())
     }
 }
 
 impl Drop for Client {
     fn drop(&mut self) {
-        self.shutdown();
+        if let Err(e) = self.shutdown() {
+            error!("Failed to shutting down bot: {}", e);
+        };
     }
 }
