@@ -14,7 +14,7 @@ use crate::{
 
 pub struct Client {
     pub tg_client: TGClient,
-    pub dispatcher: Arc<EventDispatcher>,
+    pub dispatcher: EventDispatcher,
     session_file: String,
     pub(crate) conversations: ConversationContainer,
 }
@@ -25,7 +25,7 @@ impl Client {
         api_id: i32,
         session_file: String,
         token: String,
-        dispatcher: Arc<EventDispatcher>,
+        dispatcher: EventDispatcher,
     ) -> Result<Arc<Self>> {
         let session = Self::load_session(&session_file)?;
         let config = Self::build_config(api_id, api_hash, session, None);
@@ -98,7 +98,7 @@ impl Client {
                         Ok(update) => {
                             let client = Arc::clone(&self);
 
-                            let dispatcher = Arc::clone(&self.dispatcher);
+                            let dispatcher = self.dispatcher.clone();
                             tokio::task::spawn(async move {
                                 if let Err(e) = dispatcher.dispatch(client, &update).await {
                                     error!("Error handling update: {}", e);

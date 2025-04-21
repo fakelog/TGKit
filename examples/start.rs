@@ -15,7 +15,7 @@ use tg_kit::{
 
 const SESSION_FILE: &str = "example.session";
 
-async fn get_dispatcher() -> Result<Arc<EventDispatcher>> {
+async fn get_dispatcher() -> Result<EventDispatcher> {
     let message_handler = NewMessageHandler::builder()
         .with_handler(StartHandler)
         .with_handler(RegHandler)

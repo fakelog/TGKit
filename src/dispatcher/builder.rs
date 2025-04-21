@@ -38,7 +38,7 @@ impl EventDispatcherBuilder {
         self
     }
 
-    pub async fn build(self) -> Result<Arc<EventDispatcher>> {
+    pub async fn build(self) -> Result<EventDispatcher> {
         let mut dispatcher = EventDispatcher::new();
 
         for handler in self.handlers {
@@ -49,7 +49,7 @@ impl EventDispatcherBuilder {
             dispatcher.register_middleware(middleware).await;
         }
 
-        Ok(Arc::new(dispatcher))
+        Ok(dispatcher)
     }
 }
 

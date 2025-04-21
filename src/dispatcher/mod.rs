@@ -11,15 +11,23 @@ use crate::{
     middleware::{Middleware, MiddlewareContainer},
 };
 
-#[derive(Clone)]
 pub struct EventDispatcher {
+    inner: Arc<EventDispatcherInner>,
+}
+
+pub struct EventDispatcherInner {
     handlers: Vec<Arc<dyn EventHandler>>,
     middlewares: MiddlewareContainer,
 }
 
 impl EventDispatcher {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            inner: Arc::new(EventDispatcherInner {
+                handlers: Vec::new(),
+                middlewares: MiddlewareContainer::new(),
+            }),
+        }
     }
 
     pub fn builder() -> EventDispatcherBuilder {
@@ -27,11 +35,14 @@ impl EventDispatcher {
     }
 
     pub fn register_handler(&mut self, handler: Arc<dyn EventHandler>) {
-        self.handlers.push(handler);
+        Arc::get_mut(&mut self.inner)
+            .expect("Cannot register handler after clone")
+            .handlers
+            .push(handler);
     }
 
     pub async fn register_middleware(&self, middleware: Box<dyn Middleware>) {
-        self.middlewares.add(middleware).await;
+        self.inner.middlewares.add(middleware).await;
     }
 
     pub async fn dispatch(&self, client: Arc<Client>, update: &Update) -> Result<()> {
@@ -50,11 +61,12 @@ impl EventDispatcher {
             }
         };
 
-        self.middlewares
+        self.inner
+            .middlewares
             .execute_before(Arc::clone(&client), update)
             .await?;
 
-        for handler in self.handlers.iter() {
+        for handler in self.inner.handlers.iter() {
             let handler_middlewares = handler.middlewares().await;
 
             handler_middlewares
@@ -66,7 +78,8 @@ impl EventDispatcher {
                 .await?;
         }
 
-        self.middlewares
+        self.inner
+            .middlewares
             .execute_after(Arc::clone(&client), update)
             .await?;
 
@@ -76,9 +89,14 @@ impl EventDispatcher {
 
 impl Default for EventDispatcher {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Clone for EventDispatcher {
+    fn clone(&self) -> Self {
         Self {
-            handlers: Vec::new(),
-            middlewares: MiddlewareContainer::new(),
+            inner: Arc::clone(&self.inner),
         }
     }
 }
