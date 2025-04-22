@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use dotenvy::dotenv;
-use grammers_client::types::Message;
+use grammers_client::{Update, types::Message};
 use log::LevelFilter;
 use logforth::append;
 use std::{env, sync::Arc};
@@ -112,9 +112,11 @@ impl MessageHandler for RegHandler {
         conv.send_message("Как вас зовут?").await?;
 
         let response = conv.get_response().await?;
-        response
-            .reply(format!("Привет, {}!", response.text()))
-            .await?;
+        if let Update::NewMessage(message) = response {
+            message
+                .reply(format!("Привет, {}!", message.text()))
+                .await?;
+        }
 
         Ok(())
     }

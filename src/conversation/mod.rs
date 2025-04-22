@@ -5,7 +5,10 @@ pub use conversation_container::ConversationContainer;
 pub use conversation_state::ConversationState;
 
 use anyhow::{Context, Result};
-use grammers_client::types::{Chat, Message};
+use grammers_client::{
+    Update,
+    types::{Chat, Message},
+};
 use std::{sync::Arc, time::Duration};
 use tokio::{sync::mpsc, time::timeout};
 
@@ -14,7 +17,7 @@ use crate::Client;
 pub struct Conversation {
     client: Arc<Client>,
     chat: Chat,
-    message_rx: mpsc::Receiver<Message>,
+    message_rx: mpsc::Receiver<Update>,
     timeout: Duration,
 }
 
@@ -42,9 +45,9 @@ impl Conversation {
             .context("Failed to send message")
     }
 
-    pub async fn get_response(&mut self) -> Result<Message> {
+    pub async fn get_response(&mut self) -> Result<Update> {
         match timeout(self.timeout, self.message_rx.recv()).await {
-            Ok(Some(msg)) => Ok(msg),
+            Ok(Some(upd)) => Ok(upd),
             Ok(None) => Err(anyhow::anyhow!("Conversation channel closed")),
             Err(_) => Err(anyhow::anyhow!("Timeout waiting for response")),
         }

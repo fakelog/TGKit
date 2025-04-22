@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use dashmap::DashMap;
-use grammers_client::types::Message;
+use grammers_client::Update;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -8,7 +8,7 @@ use super::ConversationState;
 
 #[derive(Debug, Clone)]
 pub struct ConversationContainer {
-    pub conversations: Arc<DashMap<i64, (ConversationState, mpsc::Sender<Message>)>>,
+    pub conversations: Arc<DashMap<i64, (ConversationState, mpsc::Sender<Update>)>>,
 }
 
 impl ConversationContainer {
@@ -18,7 +18,7 @@ impl ConversationContainer {
         }
     }
 
-    pub fn register_conversation(&self, chat_id: i64) -> mpsc::Receiver<Message> {
+    pub fn register_conversation(&self, chat_id: i64) -> mpsc::Receiver<Update> {
         let (tx, rx) = mpsc::channel(32);
         self.conversations
             .insert(chat_id, (ConversationState::new(), tx));
@@ -29,13 +29,15 @@ impl ConversationContainer {
         self.conversations.remove(&chat_id);
     }
 
-    pub fn handle_incoming_message(&self, chat_id: i64, message: Message) -> Result<()> {
+    pub fn handle_incoming_update(&self, chat_id: i64, update: Update) -> Result<()> {
         if let Some(mut entry) = self.conversations.get_mut(&chat_id) {
             let (state, sender) = entry.value_mut();
-            state.update_last_message(message.clone());
+
+            state.update_last_update(&update);
+
             sender
-                .try_send(message)
-                .context("Failed to send message to conversation channel")?;
+                .try_send(update)
+                .context("Failed to send update to conversation channel")?;
         }
         Ok(())
     }

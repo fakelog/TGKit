@@ -47,18 +47,28 @@ impl EventDispatcher {
 
     pub async fn dispatch(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         if !client.conversations.is_empty() {
-            if let Update::NewMessage(message) = update {
-                if !message.outgoing() {
-                    let chat = &message.chat();
+            match &update {
+                Update::NewMessage(message) if !message.outgoing() => {
+                    let chat_id = message.chat().id();
 
-                    if client.conversations.has_conversation(chat.id()) {
+                    if client.conversations.has_conversation(chat_id) {
                         client
                             .conversations
-                            .handle_incoming_message(chat.id(), message.clone())?;
-
+                            .handle_incoming_update(chat_id, update.clone())?;
                         return Ok(());
-                    };
+                    }
                 }
+                Update::CallbackQuery(data) => {
+                    let chat_id = data.chat().id();
+
+                    if client.conversations.has_conversation(chat_id) {
+                        client
+                            .conversations
+                            .handle_incoming_update(chat_id, update.clone())?;
+                        return Ok(());
+                    }
+                }
+                _ => {}
             }
         };
 
