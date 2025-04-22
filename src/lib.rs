@@ -1,5 +1,5 @@
 mod client;
-mod conversation;
+pub mod conversation;
 pub mod dispatcher;
 pub mod handlers;
 mod middleware;

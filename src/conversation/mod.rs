@@ -37,7 +37,7 @@ impl Conversation {
         self
     }
 
-    pub async fn send_message(&self, message: InputMessage) -> Result<Message> {
+    pub async fn send_message(&self, message: impl Into<InputMessage>) -> Result<Message> {
         self.client
             .tg_client
             .send_message(&self.chat, message)
