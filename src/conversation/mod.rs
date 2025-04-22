@@ -6,7 +6,7 @@ pub use conversation_state::ConversationState;
 
 use anyhow::{Context, Result};
 use grammers_client::{
-    Update,
+    InputMessage, Update,
     types::{Chat, Message},
 };
 use std::{sync::Arc, time::Duration};
@@ -37,10 +37,10 @@ impl Conversation {
         self
     }
 
-    pub async fn send_message(&self, text: &str) -> Result<Message> {
+    pub async fn send_message(&self, message: InputMessage) -> Result<Message> {
         self.client
             .tg_client
-            .send_message(&self.chat, text)
+            .send_message(&self.chat, message)
             .await
             .context("Failed to send message")
     }
