@@ -50,3 +50,9 @@ impl ConversationContainer {
         self.conversations.is_empty()
     }
 }
+
+impl Default for ConversationContainer {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -30,3 +30,9 @@ impl ConversationState {
         }
     }
 }
+
+impl Default for ConversationState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
