@@ -28,7 +28,7 @@ impl Conversation {
             client,
             chat,
             message_rx,
-            timeout: Duration::from_secs(10),
+            timeout: Duration::from_secs(60),
         }
     }
 
