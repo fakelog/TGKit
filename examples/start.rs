@@ -48,17 +48,15 @@ async fn main() -> Result<()> {
 
     let dispatcher = get_dispatcher().await?;
 
-    let client = Client::new(
-        api_hash,
-        api_id,
-        SESSION_FILE.to_string(),
-        token,
-        dispatcher,
-    )
-    .await
-    .unwrap();
+    let client = Client::builder()
+        .api_hash(api_hash)
+        .api_id(api_id)
+        .client_name(SESSION_FILE.to_string())
+        .dispatcher(dispatcher)
+        .build()
+        .await?;
 
-    client.run().await
+    client.run_bot(token).await
 }
 
 #[derive(Debug)]
