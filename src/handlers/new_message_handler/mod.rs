@@ -10,13 +10,12 @@ use rule_checker::RuleChecker;
 use std::sync::Arc;
 
 use super::EventHandler;
-use crate::{Client, middleware::MiddlewareContainer, rules::MessageRule};
+use crate::{Client, rules::MessageRule};
 
 pub use message_handler::MessageHandler;
 
 pub struct NewMessageHandler {
     handlers: Vec<Box<dyn MessageHandler>>,
-    middlewares: MiddlewareContainer,
     rule_checker: RuleChecker,
 }
 
@@ -28,10 +27,6 @@ impl NewMessageHandler {
 
 #[async_trait]
 impl EventHandler for NewMessageHandler {
-    async fn middlewares(&self) -> MiddlewareContainer {
-        self.middlewares.clone()
-    }
-
     async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         if let Update::NewMessage(message) = update {
             for handler in &self.handlers {

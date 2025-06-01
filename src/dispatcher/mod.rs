@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use builder::EventDispatcherBuilder;
+use futures::future::try_join_all;
 use grammers_client::Update;
 
 use crate::{
@@ -77,17 +78,17 @@ impl EventDispatcher {
             .execute_before(Arc::clone(&client), update)
             .await?;
 
-        for handler in self.inner.handlers.iter() {
-            let handler_middlewares = handler.middlewares().await;
+        let futures = self
+            .inner
+            .handlers
+            .iter()
+            .map(|handler| {
+                let client = Arc::clone(&client);
+                async move { handler.handle(client, update).await }
+            })
+            .collect::<Vec<_>>();
 
-            handler_middlewares
-                .execute_before(Arc::clone(&client), update)
-                .await?;
-            handler.handle(Arc::clone(&client), update).await?;
-            handler_middlewares
-                .execute_after(Arc::clone(&client), update)
-                .await?;
-        }
+        try_join_all(futures).await?;
 
         self.inner
             .middlewares

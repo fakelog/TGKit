@@ -10,11 +10,10 @@ use grammers_client::{Update, types::CallbackQuery};
 use std::sync::Arc;
 
 use super::EventHandler;
-use crate::{Client, middleware::MiddlewareContainer, rules::CallbackRule, types::Payload};
+use crate::{Client, rules::CallbackRule, types::Payload};
 
 pub struct CallbackQueryHandler {
     handlers: Vec<Box<dyn CallbackHandler>>,
-    middlewares: MiddlewareContainer,
 }
 
 impl CallbackQueryHandler {
@@ -25,10 +24,6 @@ impl CallbackQueryHandler {
 
 #[async_trait]
 impl EventHandler for CallbackQueryHandler {
-    async fn middlewares(&self) -> MiddlewareContainer {
-        self.middlewares.clone()
-    }
-
     async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
         // Handle only callback query updates
         if let Update::CallbackQuery(query) = update {

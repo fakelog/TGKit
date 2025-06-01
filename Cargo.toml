@@ -26,6 +26,7 @@ edition.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 dashmap = "6.1.0"
+futures = "0.3.31"
 grammers-client.workspace = true
 grammers-session.workspace = true
 log.workspace = true
