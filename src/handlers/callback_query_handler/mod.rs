@@ -6,7 +6,7 @@ pub use callback_handler::CallbackHandler;
 use anyhow::Result;
 use async_trait::async_trait;
 use builder::CallbackQueryHandlerBuilder;
-use grammers_client::{Update, types::CallbackQuery};
+use grammers_client::{Update, types::update::CallbackQuery};
 use std::sync::Arc;
 
 use super::EventHandler;

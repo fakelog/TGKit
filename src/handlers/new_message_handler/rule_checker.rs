@@ -1,5 +1,5 @@
 use crate::{rules::MessageRule, types::Payload};
-use grammers_client::types::Message;
+use grammers_client::types::update::Message;
 
 #[derive(Default)]
 pub struct RuleChecker {

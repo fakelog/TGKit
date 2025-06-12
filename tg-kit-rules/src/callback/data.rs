@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use async_trait::async_trait;
-use grammers_client::types::CallbackQuery;
+use grammers_client::types::update::CallbackQuery;
 use tg_kit::{rules::CallbackRule, types::PayloadItem};
 
 pub struct DataRule {

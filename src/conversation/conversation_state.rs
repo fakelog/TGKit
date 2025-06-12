@@ -1,6 +1,6 @@
 use grammers_client::{
     Update,
-    types::{CallbackQuery, Message},
+    types::{update::CallbackQuery, update::Message},
 };
 
 #[allow(dead_code)]

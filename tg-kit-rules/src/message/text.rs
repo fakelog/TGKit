@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use grammers_client::types::Message;
+use grammers_client::types::update::Message;
 use std::borrow::Cow;
 use tg_kit::{rules::MessageRule, types::PayloadItem};
 

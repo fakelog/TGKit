@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use dotenvy::dotenv;
-use grammers_client::{Update, types::Message};
+use grammers_client::{Update, types::update::Message};
 use log::LevelFilter;
 use logforth::append;
 use std::{env, sync::Arc};

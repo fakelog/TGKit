@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::types::Message;
+use grammers_client::types::update::Message;
 use std::{fmt::Debug, sync::Arc};
 
 use crate::{Client, rules::MessageRule, types::Payload};

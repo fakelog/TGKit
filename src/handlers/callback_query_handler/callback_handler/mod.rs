@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::types::CallbackQuery;
+use grammers_client::types::update::CallbackQuery;
 use std::{fmt::Debug, sync::Arc};
 
 use crate::{Client, rules::CallbackRule, types::Payload};

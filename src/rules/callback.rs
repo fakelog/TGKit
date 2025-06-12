@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use grammers_client::types::CallbackQuery;
+use grammers_client::types::update::CallbackQuery;
 
 use crate::types::PayloadItem;
 

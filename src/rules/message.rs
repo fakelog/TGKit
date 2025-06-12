@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use grammers_client::types::Message;
+use grammers_client::types::update::Message;
 
 use crate::types::PayloadItem;
 
