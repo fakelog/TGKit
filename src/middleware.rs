@@ -9,7 +9,7 @@ use crate::Client;
 
 #[async_trait]
 pub trait Middleware: Send + Sync {
-    async fn before(&self, client: Arc<Client>, update: &Update) -> Result<()>;
+    async fn before(&self, client: Arc<Client>, update: &Update) -> Result<bool>;
     async fn after(&self, client: Arc<Client>, update: &Update) -> Result<()>;
 }
 
@@ -35,13 +35,16 @@ impl MiddlewareContainer {
         self.middlewares.write().await.push(middleware);
     }
 
-    pub async fn execute_before(&self, client: Arc<Client>, update: &Update) -> Result<()> {
+    pub async fn execute_before(&self, client: Arc<Client>, update: &Update) -> Result<bool> {
         let middlewares = self.middlewares.read().await;
         for middleware in middlewares.iter() {
             let client = Arc::clone(&client);
-            middleware.before(client, update).await?;
+            if !middleware.before(client, update).await? {
+                return Ok(false);
+            }
         }
-        Ok(())
+
+        Ok(true)
     }
 
     pub async fn execute_after(&self, client: Arc<Client>, update: &Update) -> Result<()> {

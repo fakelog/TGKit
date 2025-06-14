@@ -73,10 +73,14 @@ impl EventDispatcher {
             }
         };
 
-        self.inner
+        if !self
+            .inner
             .middlewares
             .execute_before(Arc::clone(&client), update)
-            .await?;
+            .await?
+        {
+            return Ok(());
+        }
 
         let futures = self
             .inner
