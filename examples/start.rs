@@ -32,7 +32,7 @@ async fn get_dispatcher() -> Result<EventDispatcher> {
 async fn main() -> Result<()> {
     logforth::builder()
         .dispatch(|d| {
-            d.filter(LevelFilter::Info)
+            d.filter(LevelFilter::Trace)
                 .append(append::Stdout::default())
         })
         .apply();
@@ -81,10 +81,7 @@ impl MessageHandler for StartHandler {
     ) -> Result<()> {
         let tg_client = &client.tg_client;
         tg_client
-            .send_message(
-                message.chat(),
-                "Для продолжения вам нужно зарегестрироваться! /reg",
-            )
+            .send_message(message.chat(), "To continue, you need to register! /reg")
             .await?;
 
         Ok(())
@@ -107,13 +104,11 @@ impl MessageHandler for RegHandler {
         _payload: Payload,
     ) -> Result<()> {
         let mut conv = client.conversation(message.chat());
-        conv.send_message("Как вас зовут?").await?;
+        conv.send_message("What is your name?").await?;
 
         let response = conv.get_response().await?;
-        if let Update::NewMessage(message) = response {
-            message
-                .reply(format!("Привет, {}!", message.text()))
-                .await?;
+        if matches!(response.as_ref(), Update::NewMessage(msg) if !msg.outgoing()) {
+            message.reply(format!("Hi, {}!", message.text())).await?;
         }
 
         Ok(())

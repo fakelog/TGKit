@@ -5,12 +5,12 @@ use async_trait::async_trait;
 use grammers_client::Update;
 use tokio::sync::RwLock;
 
-use crate::Client;
+use crate::{Client, client};
 
 #[async_trait]
 pub trait Middleware: Send + Sync {
-    async fn before(&self, client: Arc<Client>, update: &Update) -> Result<bool>;
-    async fn after(&self, client: Arc<Client>, update: &Update) -> Result<()>;
+    async fn before(&self, client: Arc<Client>, update: Arc<Update>) -> Result<bool>;
+    async fn after(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()>;
 }
 
 #[derive(Clone)]
@@ -35,10 +35,12 @@ impl MiddlewareContainer {
         self.middlewares.write().await.push(middleware);
     }
 
-    pub async fn execute_before(&self, client: Arc<Client>, update: &Update) -> Result<bool> {
+    pub async fn execute_before(&self, client: Arc<Client>, update: Arc<Update>) -> Result<bool> {
         let middlewares = self.middlewares.read().await;
         for middleware in middlewares.iter() {
             let client = Arc::clone(&client);
+            let update = Arc::clone(&update);
+
             if !middleware.before(client, update).await? {
                 return Ok(false);
             }
@@ -47,10 +49,12 @@ impl MiddlewareContainer {
         Ok(true)
     }
 
-    pub async fn execute_after(&self, client: Arc<Client>, update: &Update) -> Result<()> {
+    pub async fn execute_after(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
         let middlewares = self.middlewares.read().await;
         for middleware in middlewares.iter() {
             let client = Arc::clone(&client);
+            let update = Arc::clone(&update);
+
             middleware.after(client, update).await?;
         }
         Ok(())

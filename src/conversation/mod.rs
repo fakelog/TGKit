@@ -17,7 +17,7 @@ use crate::Client;
 pub struct Conversation {
     client: Arc<Client>,
     chat: Chat,
-    message_rx: mpsc::Receiver<Update>,
+    message_rx: mpsc::Receiver<Arc<Update>>,
     timeout: Duration,
 }
 
@@ -45,7 +45,7 @@ impl Conversation {
             .context("Failed to send message")
     }
 
-    pub async fn get_response(&mut self) -> Result<Update> {
+    pub async fn get_response(&mut self) -> Result<Arc<Update>> {
         match timeout(self.timeout, self.message_rx.recv()).await {
             Ok(Some(upd)) => Ok(upd),
             Ok(None) => Err(anyhow::anyhow!("Conversation channel closed")),

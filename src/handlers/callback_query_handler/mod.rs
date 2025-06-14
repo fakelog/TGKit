@@ -24,9 +24,9 @@ impl CallbackQueryHandler {
 
 #[async_trait]
 impl EventHandler for CallbackQueryHandler {
-    async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
+    async fn handle(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
         // Handle only callback query updates
-        if let Update::CallbackQuery(query) = update {
+        if let Update::CallbackQuery(query) = update.as_ref() {
             for handler in &self.handlers {
                 let rules: Vec<Box<dyn CallbackRule>> = handler.rules().await;
                 let payload = check_rules(&rules, query).await;

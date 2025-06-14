@@ -10,5 +10,5 @@ use grammers_client::Update;
 
 #[async_trait]
 pub trait EventHandler: Send + Sync {
-    async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()>;
+    async fn handle(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()>;
 }

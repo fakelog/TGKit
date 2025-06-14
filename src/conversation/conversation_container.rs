@@ -8,7 +8,7 @@ use super::ConversationState;
 
 #[derive(Debug, Clone)]
 pub struct ConversationContainer {
-    pub conversations: Arc<DashMap<i64, (ConversationState, mpsc::Sender<Update>)>>,
+    pub conversations: Arc<DashMap<i64, (ConversationState, mpsc::Sender<Arc<Update>>)>>,
 }
 
 impl ConversationContainer {
@@ -18,7 +18,7 @@ impl ConversationContainer {
         }
     }
 
-    pub fn register_conversation(&self, chat_id: i64) -> mpsc::Receiver<Update> {
+    pub fn register_conversation(&self, chat_id: i64) -> mpsc::Receiver<Arc<Update>> {
         let (tx, rx) = mpsc::channel(32);
         self.conversations
             .insert(chat_id, (ConversationState::new(), tx));
@@ -29,11 +29,11 @@ impl ConversationContainer {
         self.conversations.remove(&chat_id);
     }
 
-    pub fn handle_incoming_update(&self, chat_id: i64, update: Update) -> Result<()> {
+    pub fn handle_incoming_update(&self, chat_id: i64, update: Arc<Update>) -> Result<()> {
         if let Some(mut entry) = self.conversations.get_mut(&chat_id) {
             let (state, sender) = entry.value_mut();
 
-            state.update_last_update(&update);
+            state.update_last_update(Arc::clone(&update));
 
             sender
                 .try_send(update)

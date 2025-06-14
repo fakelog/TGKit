@@ -47,10 +47,12 @@ impl Client {
                     let client = Arc::clone(&self);
                     let dispatcher = self.dispatcher.clone();
 
+
                     tokio::spawn(async move {
                         match update {
                             Ok(update) => {
-                                if let Err(e) = dispatcher.dispatch(client, &update).await {
+                                let update = Arc::new(update);
+                                if let Err(e) = dispatcher.dispatch(client, update).await {
                                     error!("Error handling update: {}", e);
                                 }
                             }

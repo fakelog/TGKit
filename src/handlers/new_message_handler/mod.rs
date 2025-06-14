@@ -27,8 +27,8 @@ impl NewMessageHandler {
 
 #[async_trait]
 impl EventHandler for NewMessageHandler {
-    async fn handle(&self, client: Arc<Client>, update: &Update) -> Result<()> {
-        if let Update::NewMessage(message) = update {
+    async fn handle(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
+        if let Update::NewMessage(message) = update.as_ref() {
             for handler in &self.handlers {
                 let rules: Vec<Box<dyn MessageRule>> = handler.rules().await;
                 let check_result = self.rule_checker.check(rules, message).await;

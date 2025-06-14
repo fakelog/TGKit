@@ -1,33 +1,20 @@
-use grammers_client::{
-    Update,
-    types::{update::CallbackQuery, update::Message},
-};
+use std::sync::Arc;
+
+use grammers_client::Update;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ConversationState {
-    pub last_data: Option<CallbackQuery>,
-    pub last_message: Option<Message>,
+    pub last_update: Option<Arc<Update>>,
 }
 
 impl ConversationState {
     pub fn new() -> Self {
-        Self {
-            last_data: None,
-            last_message: None,
-        }
+        Self { last_update: None }
     }
 
-    pub fn update_last_update(&mut self, update: &Update) {
-        match update {
-            Update::NewMessage(message) => {
-                self.last_message = Some(message.clone());
-            }
-            Update::CallbackQuery(data) => {
-                self.last_data = Some(data.clone());
-            }
-            _ => {}
-        }
+    pub fn update_last_update(&mut self, update: Arc<Update>) {
+        self.last_update = Some(update);
     }
 }
 

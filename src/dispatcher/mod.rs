@@ -5,6 +5,7 @@ use anyhow::Result;
 use builder::EventDispatcherBuilder;
 use futures::future::try_join_all;
 use grammers_client::Update;
+use log::warn;
 
 use crate::{
     Client,
@@ -36,47 +37,39 @@ impl EventDispatcher {
     }
 
     pub fn register_handler(&mut self, handler: Arc<dyn EventHandler>) {
-        Arc::get_mut(&mut self.inner)
-            .expect("Cannot register handler after clone")
-            .handlers
-            .push(handler);
+        if let Some(inner) = Arc::get_mut(&mut self.inner) {
+            inner.handlers.push(handler)
+        } else {
+            warn!("Cannot register handler - dispatcher is already shared");
+        }
     }
 
     pub async fn register_middleware(&self, middleware: Box<dyn Middleware>) {
         self.inner.middlewares.add(middleware).await;
     }
 
-    pub async fn dispatch(&self, client: Arc<Client>, update: &Update) -> Result<()> {
+    pub async fn dispatch(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
         if !client.conversations.is_empty() {
-            match &update {
-                Update::NewMessage(message) if !message.outgoing() => {
-                    let chat_id = message.chat().id();
+            let chat_id = match update.as_ref() {
+                Update::NewMessage(message) => Some(message.chat().id()),
+                Update::CallbackQuery(data) => Some(data.chat().id()),
+                _ => None,
+            };
 
-                    if client.conversations.has_conversation(chat_id) {
-                        client
-                            .conversations
-                            .handle_incoming_update(chat_id, update.clone())?;
-                        return Ok(());
-                    }
+            if let Some(chat_id) = chat_id {
+                if client.conversations.has_conversation(chat_id) {
+                    client
+                        .conversations
+                        .handle_incoming_update(chat_id, Arc::clone(&update))?;
+                    return Ok(());
                 }
-                Update::CallbackQuery(data) => {
-                    let chat_id = data.chat().id();
-
-                    if client.conversations.has_conversation(chat_id) {
-                        client
-                            .conversations
-                            .handle_incoming_update(chat_id, update.clone())?;
-                        return Ok(());
-                    }
-                }
-                _ => {}
             }
         };
 
         if !self
             .inner
             .middlewares
-            .execute_before(Arc::clone(&client), update)
+            .execute_before(Arc::clone(&client), Arc::clone(&update))
             .await?
         {
             return Ok(());
@@ -88,6 +81,8 @@ impl EventDispatcher {
             .iter()
             .map(|handler| {
                 let client = Arc::clone(&client);
+                let update = Arc::clone(&update);
+
                 async move { handler.handle(client, update).await }
             })
             .collect::<Vec<_>>();
