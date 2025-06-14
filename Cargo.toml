@@ -4,8 +4,8 @@ members = ["tg-kit-rules"]
 [workspace.dependencies]
 anyhow = "1.0"
 async-trait = "0.1"
-grammers-client.git = "https://github.com/Lonami/grammers.git"
-grammers-session.git = "https://github.com/Lonami/grammers.git"
+grammers-client = { git = "https://github.com/Lonami/grammers.git", branch = "graceful-sentshort-handling" }
+grammers-session = { git = "https://github.com/Lonami/grammers.git", branch = "graceful-sentshort-handling" }
 log = "0.4"
 regex = "1.11.1"
 tokio = { version = "1", features = ["full"] }
