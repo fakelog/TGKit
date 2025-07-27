@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use grammers_client::Update;
 use tokio::sync::RwLock;
 
-use crate::{Client, client};
+use crate::Client;
 
 #[async_trait]
 pub trait Middleware: Send + Sync {
