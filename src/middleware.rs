@@ -3,7 +3,6 @@ use std::sync::Arc;
 use anyhow::Result;
 use async_trait::async_trait;
 use grammers_client::update::Update;
-use tokio::sync::RwLock;
 
 use crate::Client;
 
@@ -15,29 +14,24 @@ pub trait Middleware: Send + Sync {
 
 #[derive(Clone)]
 pub struct MiddlewareContainer {
-    middlewares: Arc<RwLock<Vec<Box<dyn Middleware>>>>,
+    middlewares: Arc<Vec<Box<dyn Middleware>>>,
 }
 
 impl Default for MiddlewareContainer {
     fn default() -> Self {
-        Self {
-            middlewares: Arc::new(RwLock::new(Vec::new())),
-        }
+        Self::new(Vec::new())
     }
 }
 
 impl MiddlewareContainer {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub async fn add(&self, middleware: Box<dyn Middleware>) {
-        self.middlewares.write().await.push(middleware);
+    pub fn new(middlewares: Vec<Box<dyn Middleware>>) -> Self {
+        Self {
+            middlewares: Arc::new(middlewares),
+        }
     }
 
     pub async fn execute_before(&self, client: Arc<Client>, update: Arc<Update>) -> Result<bool> {
-        let middlewares = self.middlewares.read().await;
-        for middleware in middlewares.iter() {
+        for middleware in self.middlewares.iter() {
             let client = Arc::clone(&client);
             let update = Arc::clone(&update);
 
@@ -50,8 +44,7 @@ impl MiddlewareContainer {
     }
 
     pub async fn execute_after(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
-        let middlewares = self.middlewares.read().await;
-        for middleware in middlewares.iter() {
+        for middleware in self.middlewares.iter() {
             let client = Arc::clone(&client);
             let update = Arc::clone(&update);
 

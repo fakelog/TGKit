@@ -38,18 +38,8 @@ impl EventDispatcherBuilder {
         self
     }
 
-    pub async fn build(self) -> Result<EventDispatcher> {
-        let mut dispatcher = EventDispatcher::new();
-
-        for handler in self.handlers {
-            dispatcher.register_handler(handler);
-        }
-
-        for middleware in self.middlewares {
-            dispatcher.register_middleware(middleware).await;
-        }
-
-        Ok(dispatcher)
+    pub fn build(self) -> Result<EventDispatcher> {
+        Ok(EventDispatcher::with_parts(self.handlers, self.middlewares))
     }
 }
 

@@ -16,7 +16,7 @@ use tg_kit_rules::message::{CommandRule, OrRule, TextRule};
 
 const SESSION_FILE: &str = "example.session";
 
-async fn get_dispatcher() -> Result<EventDispatcher> {
+fn get_dispatcher() -> Result<EventDispatcher> {
     let message_handler = NewMessageHandler::builder()
         .with_handler(StartHandler)
         .with_handler(RegHandler)
@@ -25,7 +25,6 @@ async fn get_dispatcher() -> Result<EventDispatcher> {
     EventDispatcher::builder()
         .with_handler(Arc::new(message_handler))
         .build()
-        .await
 }
 
 #[tokio::main]
@@ -46,7 +45,7 @@ async fn main() -> Result<()> {
         .context("API_ID invalid")?;
     let token = env::var("TOKEN").context("TOKEN not set")?;
 
-    let dispatcher = get_dispatcher().await?;
+    let dispatcher = get_dispatcher()?;
 
     let client = Client::builder()
         .api_hash(api_hash)

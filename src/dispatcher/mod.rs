@@ -5,7 +5,6 @@ use anyhow::Result;
 use builder::EventDispatcherBuilder;
 use futures::future::try_join_all;
 use grammers_client::update::Update;
-use log::warn;
 
 use crate::{
     Client,
@@ -24,28 +23,23 @@ pub struct EventDispatcherInner {
 
 impl EventDispatcher {
     pub fn new() -> Self {
+        Self::with_parts(Vec::new(), Vec::new())
+    }
+
+    pub(crate) fn with_parts(
+        handlers: Vec<Arc<dyn EventHandler>>,
+        middlewares: Vec<Box<dyn Middleware>>,
+    ) -> Self {
         Self {
             inner: Arc::new(EventDispatcherInner {
-                handlers: Vec::new(),
-                middlewares: MiddlewareContainer::new(),
+                handlers,
+                middlewares: MiddlewareContainer::new(middlewares),
             }),
         }
     }
 
     pub fn builder() -> EventDispatcherBuilder {
         EventDispatcherBuilder::new()
-    }
-
-    pub fn register_handler(&mut self, handler: Arc<dyn EventHandler>) {
-        if let Some(inner) = Arc::get_mut(&mut self.inner) {
-            inner.handlers.push(handler)
-        } else {
-            warn!("Cannot register handler - dispatcher is already shared");
-        }
-    }
-
-    pub async fn register_middleware(&self, middleware: Box<dyn Middleware>) {
-        self.inner.middlewares.add(middleware).await;
     }
 
     pub async fn dispatch(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
