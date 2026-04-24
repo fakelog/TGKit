@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use dotenvy::dotenv;
-use grammers_client::{Update, types::update::Message};
+use grammers_client::update::{Message, Update};
 use log::LevelFilter;
 use logforth::append;
 use std::{env, sync::Arc};
@@ -80,8 +80,12 @@ impl MessageHandler for StartHandler {
         _payload: Payload,
     ) -> Result<()> {
         let tg_client = &client.tg_client;
+        let peer = message
+            .peer_ref()
+            .await
+            .ok_or_else(|| anyhow::anyhow!("Message peer is not cached"))?;
         tg_client
-            .send_message(message.chat(), "To continue, you need to register! /reg")
+            .send_message(peer, "To continue, you need to register! /reg")
             .await?;
 
         Ok(())
@@ -103,7 +107,11 @@ impl MessageHandler for RegHandler {
         message: &Message,
         _payload: Payload,
     ) -> Result<()> {
-        let mut conv = client.conversation(message.chat());
+        let peer = message
+            .peer_ref()
+            .await
+            .ok_or_else(|| anyhow::anyhow!("Message peer is not cached"))?;
+        let mut conv = client.conversation(peer);
         conv.send_message("What is your name?").await?;
 
         let response = conv.get_response().await?;

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use builder::EventDispatcherBuilder;
 use futures::future::try_join_all;
-use grammers_client::Update;
+use grammers_client::update::Update;
 use log::warn;
 
 use crate::{
@@ -51,18 +51,18 @@ impl EventDispatcher {
     pub async fn dispatch(&self, client: Arc<Client>, update: Arc<Update>) -> Result<()> {
         if !client.conversations.is_empty() {
             let chat_id = match update.as_ref() {
-                Update::NewMessage(message) => Some(message.chat().id()),
-                Update::CallbackQuery(data) => Some(data.chat().id()),
+                Update::NewMessage(message) => Some(message.peer_id()),
+                Update::CallbackQuery(data) => Some(data.peer_id()),
                 _ => None,
             };
 
-            if let Some(chat_id) = chat_id {
-                if client.conversations.has_conversation(chat_id) {
-                    client
-                        .conversations
-                        .handle_incoming_update(chat_id, Arc::clone(&update))?;
-                    return Ok(());
-                }
+            if let Some(chat_id) = chat_id
+                && client.conversations.has_conversation(chat_id)
+            {
+                client
+                    .conversations
+                    .handle_incoming_update(chat_id, Arc::clone(&update))?;
+                return Ok(());
             }
         };
 

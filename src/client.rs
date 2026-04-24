@@ -1,8 +1,12 @@
 use anyhow::Result;
-use grammers_client::{Client as TGClient, types::Chat};
+use grammers_client::{
+    Client as TGClient,
+    client::UpdatesConfiguration,
+    session::{types::PeerRef, updates::UpdatesLike},
+};
 use log::{error, info};
 use std::sync::Arc;
-use tokio::select;
+use tokio::{select, sync::Mutex};
 
 use crate::{
     builder::ClientBuilder,
@@ -13,19 +17,17 @@ use crate::{
 pub struct Client {
     pub tg_client: TGClient,
     pub dispatcher: EventDispatcher,
-    pub(crate) client_name: String,
+    pub(crate) api_hash: String,
     pub(crate) conversations: ConversationContainer,
+    pub(crate) updates: Mutex<Option<tokio::sync::mpsc::UnboundedReceiver<UpdatesLike>>>,
 }
 
 impl Client {
     async fn auth_bot(&self, token: &str) -> Result<()> {
         if !self.tg_client.is_authorized().await? {
             info!("Signing in...");
-            self.tg_client.bot_sign_in(token).await?;
+            self.tg_client.bot_sign_in(token, &self.api_hash).await?;
             info!("Signed in!");
-
-            self.tg_client.session().save_to_file(&self.client_name)?;
-            info!("Session saved!");
         }
 
         Ok(())
@@ -33,10 +35,20 @@ impl Client {
 
     async fn handle_update(self: Arc<Self>) -> Result<()> {
         info!("Starting update handling loop...");
+        let updates = self
+            .updates
+            .lock()
+            .await
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("Update stream is already running"))?;
+        let mut updates = self
+            .tg_client
+            .stream_updates(updates, UpdatesConfiguration::default())
+            .await;
 
         loop {
             let exit = tokio::signal::ctrl_c();
-            let upd = self.tg_client.next_update();
+            let upd = updates.next();
 
             select! {
                 _ = exit => {
@@ -72,8 +84,8 @@ impl Client {
         ClientBuilder::new()
     }
 
-    pub fn conversation(self: Arc<Self>, chat: Chat) -> Conversation {
-        Conversation::new(self, chat)
+    pub fn conversation(self: Arc<Self>, peer: PeerRef) -> Conversation {
+        Conversation::new(self, peer)
     }
 
     pub async fn run_bot(self: Arc<Self>, token: String) -> Result<()> {

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use grammers_client::types::update::Message;
+use grammers_client::update::Message;
 use tg_kit::{rules::MessageRule, types::PayloadItem};
 
 pub struct FromSenderRule {
@@ -20,6 +20,6 @@ impl MessageRule for FromSenderRule {
             None => return Box::new(false) as PayloadItem,
         };
 
-        Box::new(sender.id() == self.id) as PayloadItem
+        Box::new(sender.id().bare_id() == Some(self.id)) as PayloadItem
     }
 }

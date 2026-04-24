@@ -5,7 +5,7 @@ mod rule_checker;
 use anyhow::{Ok, Result};
 use async_trait::async_trait;
 use builder::NewMessageHandlerBuilder;
-use grammers_client::Update;
+use grammers_client::update::Update;
 use rule_checker::RuleChecker;
 use std::sync::Arc;
 

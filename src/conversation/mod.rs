@@ -6,8 +6,9 @@ pub use conversation_state::ConversationState;
 
 use anyhow::{Context, Result};
 use grammers_client::{
-    InputMessage, Update,
-    types::{Chat, Message},
+    message::{InputMessage, Message},
+    session::types::PeerRef,
+    update::Update,
 };
 use std::{sync::Arc, time::Duration};
 use tokio::{sync::mpsc, time::timeout};
@@ -16,17 +17,17 @@ use crate::Client;
 
 pub struct Conversation {
     client: Arc<Client>,
-    chat: Chat,
+    peer: PeerRef,
     message_rx: mpsc::Receiver<Arc<Update>>,
     timeout: Duration,
 }
 
 impl Conversation {
-    pub fn new(client: Arc<Client>, chat: Chat) -> Self {
-        let message_rx = client.conversations.register_conversation(chat.id());
+    pub fn new(client: Arc<Client>, peer: PeerRef) -> Self {
+        let message_rx = client.conversations.register_conversation(peer.id);
         Self {
             client,
-            chat,
+            peer,
             message_rx,
             timeout: Duration::from_secs(60),
         }
@@ -40,7 +41,7 @@ impl Conversation {
     pub async fn send_message(&self, message: impl Into<InputMessage>) -> Result<Message> {
         self.client
             .tg_client
-            .send_message(&self.chat, message)
+            .send_message(self.peer, message)
             .await
             .context("Failed to send message")
     }
@@ -58,6 +59,6 @@ impl Drop for Conversation {
     fn drop(&mut self) {
         self.client
             .conversations
-            .unregister_conversation(self.chat.id());
+            .unregister_conversation(self.peer.id);
     }
 }

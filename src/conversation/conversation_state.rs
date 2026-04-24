@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use grammers_client::Update;
+use grammers_client::update::Update;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

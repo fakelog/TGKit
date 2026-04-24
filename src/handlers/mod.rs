@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::Client;
 use anyhow::Result;
 use async_trait::async_trait;
-use grammers_client::Update;
+use grammers_client::update::Update;
 
 #[async_trait]
 pub trait EventHandler: Send + Sync {

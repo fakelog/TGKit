@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use grammers_client::{Client as GrammersClient, Config as GrammersConfig, InitParams};
-use grammers_session::Session;
-
-use crate::{
-    Client, conversation::ConversationContainer, dispatcher::EventDispatcher,
-    utils::BotReconnectionPolicy,
+use grammers_client::{
+    Client as GrammersClient,
+    client::ClientConfiguration,
+    sender::{ConnectionParams, SenderPool},
+    session::storages::SqliteSession,
 };
+
+use crate::{Client, conversation::ConversationContainer, dispatcher::EventDispatcher};
 
 pub struct ClientBuilder {
     api_id: Option<i32>,
@@ -18,7 +19,7 @@ pub struct ClientBuilder {
     app_version: Option<String>,
     system_lang_code: Option<String>,
     lang_code: Option<String>,
-    session: Option<Session>,
+    session: Option<Arc<SqliteSession>>,
     dispatcher: Option<EventDispatcher>,
 }
 
@@ -78,7 +79,7 @@ impl ClientBuilder {
         self
     }
 
-    pub fn session(mut self, session: Session) -> Self {
+    pub fn session(mut self, session: Arc<SqliteSession>) -> Self {
         self.session = Some(session);
         self
     }
@@ -96,30 +97,30 @@ impl ClientBuilder {
             .unwrap_or_else(|| "tg-kit-session".to_string());
         let session = match self.session {
             Some(session) => session,
-            None => Session::load_file_or_create(&client_name)?,
+            None => Arc::new(SqliteSession::open(&client_name).await?),
         };
 
-        let config = GrammersConfig {
-            session,
-            api_id,
-            api_hash,
-            params: InitParams {
-                device_model: self.device_model.unwrap_or_else(|| "Unknown".to_string()),
-                system_version: self.system_version.unwrap_or_else(|| "1.0".to_string()),
-                app_version: self.app_version.unwrap_or_else(|| "1.0".to_string()),
-                system_lang_code: self.system_lang_code.unwrap_or_else(|| "en".to_string()),
-                lang_code: self.lang_code.unwrap_or_else(|| "en".to_string()),
-                reconnection_policy: &BotReconnectionPolicy,
-                ..Default::default()
-            },
+        let connection_params = ConnectionParams {
+            device_model: self.device_model.unwrap_or_else(|| "Unknown".to_string()),
+            system_version: self.system_version.unwrap_or_else(|| "1.0".to_string()),
+            app_version: self.app_version.unwrap_or_else(|| "1.0".to_string()),
+            system_lang_code: self.system_lang_code.unwrap_or_else(|| "en".to_string()),
+            lang_code: self.lang_code.unwrap_or_else(|| "en".to_string()),
+            ..Default::default()
         };
 
-        let tg_client = GrammersClient::connect(config).await?;
+        let sender_pool = SenderPool::with_configuration(session, api_id, connection_params);
+        let tg_client =
+            GrammersClient::with_configuration(sender_pool.handle, ClientConfiguration::default());
+        let updates = sender_pool.updates;
+        tokio::spawn(sender_pool.runner.run());
+
         let client = Client {
             tg_client,
             dispatcher: self.dispatcher.context("EventDispatcher is required")?,
-            client_name,
+            api_hash,
             conversations: ConversationContainer::new(),
+            updates: tokio::sync::Mutex::new(Some(updates)),
         };
 
         Ok(Arc::new(client))
